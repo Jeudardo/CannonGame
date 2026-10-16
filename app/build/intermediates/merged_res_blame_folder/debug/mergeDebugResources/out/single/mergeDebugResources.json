@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.joaoeduardo.cannongame.app-debug-4:/raw_target_hit.wav.flat",
+        "source": "com.joaoeduardo.cannongame.app-main-6:/raw/target_hit.wav"
+    },
+    {
+        "merged": "com.joaoeduardo.cannongame.app-debug-4:/raw_cannon_fire.wav.flat",
+        "source": "com.joaoeduardo.cannongame.app-main-6:/raw/cannon_fire.wav"
+    },
+    {
+        "merged": "com.joaoeduardo.cannongame.app-debug-4:/raw_blocker_hit.wav.flat",
+        "source": "com.joaoeduardo.cannongame.app-main-6:/raw/blocker_hit.wav"
+    }
+]

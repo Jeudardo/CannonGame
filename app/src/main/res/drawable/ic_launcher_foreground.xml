@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Cannon barrel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,54 L70,48 L70,60 L20,60 Z" />
+
+    <!-- Cannon base (circle) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,54 m-12,0 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0" />
+
+    <!-- Cannonball in flight -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,52 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+
+    <!-- Target bar -->
+    <path
+        android:fillColor="#FF4444"
+        android:pathData="M92,20 L98,20 L98,88 L92,88 Z" />
+
+</vector>

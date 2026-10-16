@@ -1,0 +1,16 @@
+R_DEF: Internal format may change without notice
+local
+color background
+color black
+color white
+raw blocker_hit
+raw cannon_fire
+raw target_hit
+string app_name
+string best_shots
+string lose_message
+string play_again
+string win_message
+string you_lost
+string you_won
+style Theme.CannonGame
