@@ -458,6 +458,17 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
 
     // ── Game-over dialog ─────────────────────────────────────────────────────────
 
+    private Activity getActivity() {
+        Context context = getContext();
+        while (context instanceof android.content.ContextWrapper) {
+            if (context instanceof Activity) {
+                return (Activity) context;
+            }
+            context = ((android.content.ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
     private void showGameOverDialog(final boolean playerWon) {
         if (dialogIsDisplayed) return;
         dialogIsDisplayed = true;
@@ -472,16 +483,19 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         final String finalMessage = message;
-        ((Activity) getContext()).runOnUiThread(() -> new AlertDialog.Builder(getContext())
-            .setTitle(title)
-            .setMessage(finalMessage)
-            .setCancelable(false)
-            .setPositiveButton(R.string.play_again, (dialog, which) -> {
-                dialogIsDisplayed = false;
-                startNewGame();
-            })
-            .show()
-        );
+        Activity activity = getActivity();
+        if (activity != null && !activity.isFinishing()) {
+            activity.runOnUiThread(() -> new AlertDialog.Builder(activity)
+                .setTitle(title)
+                .setMessage(finalMessage)
+                .setCancelable(false)
+                .setPositiveButton(R.string.play_again, (dialog, which) -> {
+                    dialogIsDisplayed = false;
+                    startNewGame();
+                })
+                .show()
+            );
+        }
     }
 
     // ── Public lifecycle controls ────────────────────────────────────────────────
@@ -546,7 +560,12 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
                 Canvas canvas = null;
                 try {
                     canvas = surfaceHolder.lockCanvas(null);
-                    if (canvas == null) continue;
+                    if (canvas == null) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException ignored) {}
+                        continue;
+                    }
 
                     synchronized (surfaceHolder) {
                         long nowMs      = System.currentTimeMillis();

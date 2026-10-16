@@ -28,5 +28,5 @@ android {
 }
 
 dependencies {
-    // No external dependencies needed — game uses only Android SDK APIs
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }

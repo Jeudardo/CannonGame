@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.CannonGame" parent="android:Theme.NoTitleBar.Fullscreen">
+    <style name="Theme.CannonGame" parent="android:Theme.Material.Light.NoActionBar.Fullscreen">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@color/background</item>
