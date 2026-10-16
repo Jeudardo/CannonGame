@@ -3,6 +3,7 @@ package com.joaoeduardo.cannongame;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -17,44 +18,43 @@ import android.view.SurfaceView;
 
 public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
 
-    // ── Game rules ──────────────────────────────────────────────────────────────
     private static final int    TARGET_PIECES      = 7;
     private static final int    MISS_PENALTY       = 2;
     private static final int    HIT_REWARD         = 3;
-    private static final double INITIAL_GAME_TIME  = 10.0;
+    private static final double INITIAL_GAME_TIME  = 25.0;
 
-    // ── Layout constants (fraction of screen) ───────────────────────────────────
-    private static final float CANNON_BASE_RADIUS_PERCENT  = 0.030f;
-    private static final float CANNON_BARREL_LENGTH_PERCENT = 0.250f;
-    private static final float CANNON_BARREL_WIDTH_PERCENT  = 0.015f;
+    private static final float CANNON_BASE_RADIUS_PERCENT   = 0.032f;
+    private static final float CANNON_BARREL_LENGTH_PERCENT = 0.220f;
+    private static final float CANNON_BARREL_WIDTH_PERCENT  = 0.016f;
 
-    private static final float CANNONBALL_RADIUS_PERCENT = 0.020f;
-    private static final float CANNONBALL_SPEED_PERCENT  = 0.400f; // screen-widths/s
+    private static final float CANNONBALL_RADIUS_PERCENT = 0.018f;
+    private static final float CANNONBALL_SPEED_PERCENT  = 0.650f;
 
-    private static final float BLOCKER_DISTANCE_PERCENT    = 0.320f;
-    private static final float BLOCKER_WIDTH_PERCENT       = 0.014f;
-    private static final float BLOCKER_HALF_LENGTH_PERCENT = 0.380f;
-    private static final float BLOCKER_SPEED_PERCENT       = 0.400f; // screen-heights/s
+    private static final float BLOCKER_DISTANCE_PERCENT    = 0.350f;
+    private static final float BLOCKER_WIDTH_PERCENT       = 0.016f;
+    private static final float BLOCKER_HALF_LENGTH_PERCENT = 0.140f;
+    private static final float BLOCKER_SPEED_PERCENT       = 0.350f;
 
-    private static final float TARGET_DISTANCE_PERCENT = 0.900f;
-    private static final float TARGET_WIDTH_PERCENT    = 0.028f;
-    private static final float TARGET_GAP_PERCENT      = 0.020f; // top/bottom gap each side
+    private static final float TARGET_DISTANCE_PERCENT = 0.910f;
+    private static final float TARGET_WIDTH_PERCENT    = 0.026f;
+    private static final float TARGET_GAP_PERCENT      = 0.040f;
 
-    // ── Colors ──────────────────────────────────────────────────────────────────
     private static final int[] TARGET_COLORS = {
-        Color.YELLOW, Color.CYAN, Color.RED, Color.GREEN,
-        Color.MAGENTA, Color.WHITE, Color.BLUE
+        Color.parseColor("#EF4444"),
+        Color.parseColor("#F97316"),
+        Color.parseColor("#FACC15"),
+        Color.parseColor("#22C55E"),
+        Color.parseColor("#06B6D4"),
+        Color.parseColor("#3B82F6"),
+        Color.parseColor("#A855F7")
     };
 
-    // ── Prefs key for high-score ─────────────────────────────────────────────────
-    private static final String PREFS_NAME  = "cannon_prefs";
-    private static final String KEY_BEST    = "best_shots";
+    private static final String PREFS_NAME = "cannon_prefs";
+    private static final String KEY_BEST   = "best_shots";
 
-    // ── Screen ───────────────────────────────────────────────────────────────────
     private float screenWidth;
     private float screenHeight;
 
-    // ── Derived measurements ─────────────────────────────────────────────────────
     private float cannonBaseRadius;
     private float cannonBarrelLength;
     private float cannonBarrelWidth;
@@ -67,58 +67,54 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
     private float targetSectionHeight;
     private float targetFirstY;
 
-    // ── Cannon state ─────────────────────────────────────────────────────────────
     private float cannonX;
     private float cannonY;
     private float barrelEndX;
     private float barrelEndY;
 
-    // ── Cannonball state ─────────────────────────────────────────────────────────
     private boolean cannonballOnScreen;
     private float   cannonballX;
     private float   cannonballY;
     private float   cannonballVelocityX;
     private float   cannonballVelocityY;
 
-    // ── Blocker state ────────────────────────────────────────────────────────────
     private RectF blockerRect;
     private float blockerVelocity;
 
-    // ── Target state ─────────────────────────────────────────────────────────────
-    private RectF[]    targetRects;
-    private boolean[]  targetHit;
-    private int        targetsRemaining;
+    private RectF[]   targetRects;
+    private boolean[] targetHit;
+    private int       targetsRemaining;
 
-    // ── Score / time ─────────────────────────────────────────────────────────────
     private double timeLeft;
     private int    shotsFired;
     private double totalElapsedTime;
     private int    bestShots;
 
-    // ── Flags ────────────────────────────────────────────────────────────────────
     private boolean gameOver;
     private boolean dialogIsDisplayed;
     private boolean surfaceReady;
 
-    // ── Sound ────────────────────────────────────────────────────────────────────
     private SoundPool soundPool;
     private int       cannonSoundId;
     private int       blockerSoundId;
     private int       targetSoundId;
 
-    // ── Paint objects ────────────────────────────────────────────────────────────
-    private final Paint backgroundPaint = new Paint();
-    private final Paint cannonPaint     = new Paint();
-    private final Paint cannonballPaint = new Paint();
-    private final Paint blockerPaint    = new Paint();
-    private final Paint hudPaint        = new Paint();
-    private final Paint timeBarPaint    = new Paint();
-    private final Paint[] targetPaints  = new Paint[TARGET_PIECES];
+    private final Paint backgroundPaint  = new Paint();
+    private final Paint cannonBasePaint  = new Paint();
+    private final Paint cannonPivotPaint = new Paint();
+    private final Paint cannonBarrelPaint= new Paint();
+    private final Paint cannonballPaint  = new Paint();
+    private final Paint cannonballGlow   = new Paint();
+    private final Paint blockerPaint     = new Paint();
+    private final Paint blockerGlowPaint = new Paint();
+    private final Paint hudPaint         = new Paint();
+    private final Paint hudSecondaryPaint= new Paint();
+    private final Paint timeBarBgPaint   = new Paint();
+    private final Paint timeBarPaint     = new Paint();
+    private final Paint[] targetPaints   = new Paint[TARGET_PIECES];
 
-    // ── Game loop thread ─────────────────────────────────────────────────────────
     private CannonThread cannonThread;
 
-    // ────────────────────────────────────────────────────────────────────────────
     public CannonView(Context context, AttributeSet attrs) {
         super(context, attrs);
         getHolder().addCallback(this);
@@ -127,26 +123,47 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         loadBestScore();
     }
 
-    // ── Initialization ───────────────────────────────────────────────────────────
-
     private void initPaints() {
-        backgroundPaint.setColor(Color.WHITE);
+        backgroundPaint.setColor(Color.parseColor("#0F172A"));
 
-        cannonPaint.setColor(Color.BLACK);
-        cannonPaint.setAntiAlias(true);
+        cannonBasePaint.setColor(Color.parseColor("#475569"));
+        cannonBasePaint.setAntiAlias(true);
 
-        cannonballPaint.setColor(Color.BLACK);
+        cannonPivotPaint.setColor(Color.parseColor("#38BDF8"));
+        cannonPivotPaint.setAntiAlias(true);
+
+        cannonBarrelPaint.setColor(Color.parseColor("#94A3B8"));
+        cannonBarrelPaint.setAntiAlias(true);
+        cannonBarrelPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        cannonballPaint.setColor(Color.parseColor("#F59E0B"));
         cannonballPaint.setAntiAlias(true);
 
-        blockerPaint.setColor(Color.parseColor("#555555"));
+        cannonballGlow.setColor(Color.parseColor("#FEF08A"));
+        cannonballGlow.setAntiAlias(true);
 
-        hudPaint.setColor(Color.BLACK);
+        blockerPaint.setColor(Color.parseColor("#E11D48"));
+        blockerPaint.setAntiAlias(true);
+
+        blockerGlowPaint.setColor(Color.parseColor("#FB7185"));
+        blockerGlowPaint.setStyle(Paint.Style.STROKE);
+        blockerGlowPaint.setAntiAlias(true);
+
+        hudPaint.setColor(Color.WHITE);
         hudPaint.setAntiAlias(true);
+        hudPaint.setFakeBoldText(true);
         hudPaint.setTextAlign(Paint.Align.LEFT);
+
+        hudSecondaryPaint.setColor(Color.parseColor("#94A3B8"));
+        hudSecondaryPaint.setAntiAlias(true);
+        hudSecondaryPaint.setTextAlign(Paint.Align.RIGHT);
+
+        timeBarBgPaint.setColor(Color.parseColor("#1E293B"));
 
         for (int i = 0; i < TARGET_PIECES; i++) {
             targetPaints[i] = new Paint();
             targetPaints[i].setColor(TARGET_COLORS[i]);
+            targetPaints[i].setAntiAlias(true);
         }
     }
 
@@ -167,8 +184,7 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void loadBestScore() {
-        SharedPreferences prefs = getContext()
-            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         bestShots = prefs.getInt(KEY_BEST, Integer.MAX_VALUE);
     }
 
@@ -180,11 +196,8 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // ── SurfaceHolder.Callback ───────────────────────────────────────────────────
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        // Dimensions not available yet; wait for surfaceChanged.
     }
 
     @Override
@@ -209,12 +222,10 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         stopThread();
     }
 
-    // ── Measurements ─────────────────────────────────────────────────────────────
-
     private void computeMeasurements() {
         float min = Math.min(screenWidth, screenHeight);
 
-        cannonBaseRadius   = CANNON_BASE_RADIUS_PERCENT  * min;
+        cannonBaseRadius   = CANNON_BASE_RADIUS_PERCENT   * min;
         cannonBarrelLength = CANNON_BARREL_LENGTH_PERCENT * screenWidth;
         cannonBarrelWidth  = CANNON_BARREL_WIDTH_PERCENT  * screenWidth;
 
@@ -231,11 +242,11 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         targetSectionHeight = totalTargetH / TARGET_PIECES;
         targetFirstY        = gapY;
 
-        float textSize = screenWidth / 28f;
+        float textSize = screenWidth / 30f;
         hudPaint.setTextSize(textSize);
+        hudSecondaryPaint.setTextSize(textSize * 0.85f);
+        blockerGlowPaint.setStrokeWidth(screenWidth * 0.003f);
     }
-
-    // ── Game lifecycle ───────────────────────────────────────────────────────────
 
     private void startNewGame() {
         timeLeft         = INITIAL_GAME_TIME;
@@ -244,16 +255,13 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         gameOver         = false;
         targetsRemaining = TARGET_PIECES;
 
-        // Cannon – base at left-center
         cannonX    = 0f;
         cannonY    = screenHeight / 2f;
         barrelEndX = cannonBarrelLength;
         barrelEndY = screenHeight / 2f;
 
-        // Cannonball – off screen initially
         cannonballOnScreen = false;
 
-        // Blocker – centered vertically at its designated X position
         float blockerCx = BLOCKER_DISTANCE_PERCENT * screenWidth;
         blockerRect = new RectF(
             blockerCx - blockerWidth / 2f,
@@ -263,13 +271,14 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         );
         blockerVelocity = blockerSpeed;
 
-        // Targets
         targetRects = new RectF[TARGET_PIECES];
         targetHit   = new boolean[TARGET_PIECES];
         float targetCx = TARGET_DISTANCE_PERCENT * screenWidth;
+        float targetMarginY = targetSectionHeight * 0.08f;
+
         for (int i = 0; i < TARGET_PIECES; i++) {
-            float top    = targetFirstY + i * targetSectionHeight;
-            float bottom = top + targetSectionHeight;
+            float top    = targetFirstY + i * targetSectionHeight + targetMarginY;
+            float bottom = targetFirstY + (i + 1) * targetSectionHeight - targetMarginY;
             targetRects[i] = new RectF(
                 targetCx - targetWidth / 2f,
                 top,
@@ -278,8 +287,6 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
             );
         }
     }
-
-    // ── Update logic (called from game thread) ───────────────────────────────────
 
     private void updatePositions(double elapsedTime) {
         if (gameOver) return;
@@ -294,7 +301,6 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
             return;
         }
 
-        // Blocker movement
         float dy = (float) (blockerVelocity * elapsedTime);
         blockerRect.offset(0, dy);
         if (blockerRect.top < 0 && blockerVelocity < 0) {
@@ -305,30 +311,22 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
             blockerRect.offset(0, -2 * dy);
         }
 
-        // Cannonball movement
         if (cannonballOnScreen) {
             cannonballX += (float) (cannonballVelocityX * elapsedTime);
             cannonballY += (float) (cannonballVelocityY * elapsedTime);
 
-            // Off top or bottom
             if (cannonballY - cannonballRadius < 0 ||
                 cannonballY + cannonballRadius > screenHeight) {
                 cannonballOnScreen = false;
                 applyPenalty();
-            }
-            // Off right side – ball passed all targets
-            else if (cannonballX - cannonballRadius > screenWidth) {
+            } else if (cannonballX - cannonballRadius > screenWidth) {
                 cannonballOnScreen = false;
                 applyPenalty();
-            }
-            // Hit blocker
-            else if (circleHitsRect(blockerRect)) {
+            } else if (circleHitsRect(blockerRect)) {
                 cannonballVelocityX = -Math.abs(cannonballVelocityX);
                 soundPool.play(blockerSoundId, 1f, 1f, 0, 0, 1f);
                 applyPenalty();
-            }
-            // Hit a target
-            else {
+            } else {
                 for (int i = 0; i < TARGET_PIECES; i++) {
                     if (!targetHit[i] && circleHitsRect(targetRects[i])) {
                         targetHit[i] = true;
@@ -360,80 +358,74 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
                cannonballY - cannonballRadius <= rect.bottom;
     }
 
-    // ── Drawing (called from game thread) ────────────────────────────────────────
-
     private void drawGameElements(Canvas canvas) {
-        // Background
         canvas.drawRect(0, 0, screenWidth, screenHeight, backgroundPaint);
 
-        // Targets
+        float targetRadius = targetWidth * 0.4f;
         for (int i = 0; i < TARGET_PIECES; i++) {
             if (!targetHit[i]) {
-                canvas.drawRect(targetRects[i], targetPaints[i]);
+                canvas.drawRoundRect(targetRects[i], targetRadius, targetRadius, targetPaints[i]);
             }
         }
 
-        // Blocker
-        canvas.drawRect(blockerRect, blockerPaint);
+        float blockerRadius = blockerWidth * 0.5f;
+        canvas.drawRoundRect(blockerRect, blockerRadius, blockerRadius, blockerPaint);
+        canvas.drawRoundRect(blockerRect, blockerRadius, blockerRadius, blockerGlowPaint);
 
-        // Cannon base
-        canvas.drawCircle(cannonX, cannonY, cannonBaseRadius, cannonPaint);
+        cannonBarrelPaint.setStrokeWidth(cannonBarrelWidth);
+        canvas.drawLine(cannonX, cannonY, barrelEndX, barrelEndY, cannonBarrelPaint);
 
-        // Cannon barrel
-        cannonPaint.setStrokeWidth(cannonBarrelWidth);
-        canvas.drawLine(cannonX, cannonY, barrelEndX, barrelEndY, cannonPaint);
+        canvas.drawCircle(cannonX, cannonY, cannonBaseRadius, cannonBasePaint);
+        canvas.drawCircle(cannonX, cannonY, cannonBaseRadius * 0.45f, cannonPivotPaint);
 
-        // Cannonball
         if (cannonballOnScreen) {
+            canvas.drawCircle(cannonballX, cannonballY, cannonballRadius * 1.3f, cannonballGlow);
             canvas.drawCircle(cannonballX, cannonballY, cannonballRadius, cannonballPaint);
         }
 
-        // HUD
         drawHUD(canvas);
-
-        // Time bar (extra feature)
         drawTimeBar(canvas);
     }
 
     private void drawHUD(Canvas canvas) {
-        float margin = screenWidth * 0.02f;
-        float y      = hudPaint.getTextSize() + margin;
+        float margin = screenWidth * 0.025f;
+        float y      = hudPaint.getTextSize() + margin * 0.8f;
 
+        canvas.drawText(String.format("Time: %.1f s", timeLeft), margin, y, hudPaint);
         canvas.drawText(
-            String.format("Time: %.1f s", timeLeft),
-            margin, y, hudPaint
-        );
-        canvas.drawText(
-            String.format("Shots: %d", shotsFired),
-            margin, y + hudPaint.getTextSize() + margin * 0.5f, hudPaint
+            String.format("Shots: %d  |  Remaining: %d", shotsFired, targetsRemaining),
+            margin,
+            y + hudPaint.getTextSize() * 1.25f,
+            hudPaint
         );
 
         if (bestShots != Integer.MAX_VALUE) {
-            String best = String.format("Best: %d shots", bestShots);
-            hudPaint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(best, screenWidth - margin, y, hudPaint);
-            hudPaint.setTextAlign(Paint.Align.LEFT);
+            canvas.drawText(
+                String.format("Record: %d shots", bestShots),
+                screenWidth - margin,
+                y,
+                hudSecondaryPaint
+            );
         }
     }
 
-    // ── Extra feature: color-coded time bar at bottom of screen ─────────────────
     private void drawTimeBar(Canvas canvas) {
         float ratio    = (float) Math.min(1.0, timeLeft / INITIAL_GAME_TIME);
-        float barH     = screenHeight * 0.018f;
+        float barH     = screenHeight * 0.016f;
         float barWidth = ratio * screenWidth;
 
-        int r = (int) ((1f - ratio) * 255);
-        int g = (int) (ratio        * 255);
-        timeBarPaint.setColor(Color.rgb(r, g, 0));
+        canvas.drawRect(0, screenHeight - barH, screenWidth, screenHeight, timeBarBgPaint);
+
+        int r = (int) (Math.max(0f, Math.min(1f, 2f * (1f - ratio))) * 255);
+        int g = (int) (Math.max(0f, Math.min(1f, 2f * ratio)) * 255);
+        timeBarPaint.setColor(Color.rgb(r, g, 40));
+
         canvas.drawRect(0, screenHeight - barH, barWidth, screenHeight, timeBarPaint);
     }
-
-    // ── Touch handling ───────────────────────────────────────────────────────────
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() != MotionEvent.ACTION_DOWN) return true;
-
         if (gameOver) return true;
 
         float touchX = event.getX();
@@ -456,15 +448,13 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         return true;
     }
 
-    // ── Game-over dialog ─────────────────────────────────────────────────────────
-
     private Activity getActivity() {
         Context context = getContext();
-        while (context instanceof android.content.ContextWrapper) {
+        while (context instanceof ContextWrapper) {
             if (context instanceof Activity) {
                 return (Activity) context;
             }
-            context = ((android.content.ContextWrapper) context).getBaseContext();
+            context = ((ContextWrapper) context).getBaseContext();
         }
         return null;
     }
@@ -498,8 +488,6 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // ── Public lifecycle controls ────────────────────────────────────────────────
-
     public void stopGame() {
         stopThread();
     }
@@ -519,8 +507,6 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    // ── Thread helper ────────────────────────────────────────────────────────────
-
     private void stopThread() {
         if (cannonThread == null) return;
         cannonThread.setRunning(false);
@@ -535,8 +521,6 @@ public class CannonView extends SurfaceView implements SurfaceHolder.Callback {
         }
         cannonThread = null;
     }
-
-    // ── Inner class: Game loop ───────────────────────────────────────────────────
 
     private class CannonThread extends Thread {
 

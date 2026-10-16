@@ -2,7 +2,8 @@
 
 **Aluno:** João Eduardo Souza  
 **Disciplina:** Programação III  
-**Referência:** Android 6 for Programmers: An App-Driven Approach, 3rd Edition — Capítulo 6
+**Referência:** Android 6 for Programmers: An App-Driven Approach, 3rd Edition — Capítulo 6  
+**Repositório:** [https://github.com/Jeudardo/CannonGame](https://github.com/Jeudardo/CannonGame)
 
 ---
 
@@ -23,41 +24,39 @@ Desenvolver o jogo **Cannon Game** em Android nativo (Java), aplicando os concei
 
 | Funcionalidade | Descrição |
 |---|---|
-| Canhão apontável | Toque em qualquer ponto da tela para apontar e disparar |
-| Projétil | Bola disparada do cano do canhão em direção ao toque |
-| 7 alvos coloridos | Alvos empilhados verticalmente; acertar um dá +3 s |
-| Bloqueador móvel | Barra cinza que sobe e desce; rebate o projétil e aplica −2 s |
-| Limite de tempo | 10 segundos iniciais; vence quem destruir todos os alvos a tempo |
-| Sons | `cannon_fire`, `target_hit` e `blocker_hit` via `SoundPool` |
-| HUD | Tempo restante e quantidade de disparos exibidos na tela |
-| **[Extra]** Barra de tempo | Barra colorida (verde→vermelho) no rodapé mostra o tempo visualmente |
-| **[Extra]** Recorde pessoal | Menor número de disparos salvo com `SharedPreferences` |
+| Canhão articulado | Toque na tela para mirar e disparar na direção desejada |
+| Projétil com rastro | Bola de canhão disparada com velocidade ajustada e efeito visual |
+| 7 alvos coloridos | Alvos individuais com cantos arredondados; cada acerto concede +3 s |
+| Bloqueador dinâmico | Obstáculo móvel redimensionado para jogabilidade fluida; rebate e penaliza em −2 s |
+| Limite de tempo | 25 segundos iniciais; vence quem eliminar todos os alvos a tempo |
+| Áudio com SoundPool | Sons de disparo (`cannon_fire`), acerto (`target_hit`) e bloqueio (`blocker_hit`) |
+| HUD completo | Exibe tempo restante, disparos feitos, alvos restantes e recorde pessoal |
+| **[Extra]** Barra de tempo | Barra dinâmica colorida (verde→amarelo→vermelho) no rodapé da tela |
+| **[Extra]** Recorde pessoal | Menor número de disparos salvo localmente via `SharedPreferences` |
+| **[Extra]** Visual Dark Arcade | Paleta moderna de alto contraste, elementos arredondados e acabamento limpo |
 
 ---
 
 ## Como Executar
 
 ### Pré-requisitos
-- Android Studio **Ladybug** (2024.2) ou superior
-- SDK Android 34 instalado
-- Dispositivo físico ou emulador com API 24+
+- Android Studio ou dispositivo físico Android
+- SDK Android 24+ (Android 7.0 até Android 14/15)
 
 ### Passos
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/<seu-usuario>/CannonGame.git
+git clone https://github.com/Jeudardo/CannonGame.git
 
 # 2. Abra no Android Studio
 #    File → Open → selecione a pasta CannonGame
 
-# 3. Aguarde o sync do Gradle
+# 3. Aguarde a sincronização do Gradle
 
-# 4. Execute no dispositivo/emulador (orientação landscape)
-#    Run → Run 'app'
+# 4. Execute no dispositivo físico ou emulador (orientação landscape)
+#    Run → Run 'app' (Play verde ▶️)
 ```
-
-> **Dica:** Use um dispositivo físico para a melhor experiência sonora e de toque.
 
 ---
 
@@ -68,10 +67,11 @@ CannonGame/
 ├── app/src/main/
 │   ├── java/com/joaoeduardo/cannongame/
 │   │   ├── MainActivity.java   # Activity: imersão, ciclo de vida
-│   │   └── CannonView.java     # SurfaceView: lógica, desenho, sons
+│   │   └── CannonView.java     # SurfaceView: game loop, física, desenho, sons
 │   ├── res/
-│   │   ├── raw/                # Arquivos de áudio (.wav)
-│   │   └── values/             # strings, colors, themes
+│   │   ├── raw/                # Áudios (.wav): cannon_fire, target_hit, blocker_hit
+│   │   ├── drawable/           # Ícones e elementos visuais adaptativos
+│   │   └── values/             # strings, colors, themes (Material Fullscreen)
 │   └── AndroidManifest.xml
 ├── build.gradle
 ├── settings.gradle
@@ -82,15 +82,16 @@ CannonGame/
 
 ## Regras do Jogo
 
-- **Toque** na tela para apontar e disparar o canhão.
-- **Acertar um alvo** → +3 segundos de tempo.
-- **Rebater no bloqueador** ou **errar** → −2 segundos.
-- **Vitória:** todos os 7 alvos destruídos antes do tempo acabar.
-- **Derrota:** o tempo chega a zero.
+- **Toque** em qualquer ponto da tela para apontar o canhão e disparar.
+- **Acertar um alvo** → +3 segundos de tempo adicional.
+- **Acertar o obstáculo móvel** ou **errar o tiro** → −2 segundos de penalidade.
+- **Vitória:** todos os 7 alvos destruídos antes do tempo esgotar.
+- **Derrota:** o cronômetro chega a zero.
 
 ---
 
 ## Recursos Extras Implementados
 
-1. **Barra de tempo visual** — barra horizontal no rodapé que muda de verde para vermelho conforme o tempo diminui, tornando a urgência imediatamente perceptível.
-2. **Recorde pessoal (Best Shots)** — o menor número de disparos para vencer é salvo localmente via `SharedPreferences` e exibido no HUD e no diálogo de vitória.
+1. **Barra de tempo visual integrada**: Barra horizontal no rodapé que transiciona suavemente de verde para amarelo e vermelho conforme a contagem regressiva avança.
+2. **Sistema de Recorde (High Score)**: O jogo salva no armazenamento local (`SharedPreferences`) a menor quantidade de tiros que o jogador precisou para vencer, incentivando a precisão.
+3. **Interface e Estilização Dark Arcade**: Visual remodelado com fundo de alto contraste, alvos estilizados em formato de cartões arredondados, canhão com anel articulado e obstáculo com contorno em destaque.
