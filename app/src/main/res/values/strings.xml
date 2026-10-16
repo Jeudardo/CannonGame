@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Cannon Game</string>
+    <string name="you_won">You Won! 🎉</string>
+    <string name="you_lost">Time\'s Up!</string>
+    <string name="win_message">Congratulations!\nShots fired: %1$d\nTotal time: %2$d s</string>
+    <string name="lose_message">Better luck next time!\nShots fired: %1$d\nTotal time: %2$d s</string>
+    <string name="best_shots">Personal best: %1$d shots</string>
+    <string name="play_again">Play Again</string>
+</resources>
