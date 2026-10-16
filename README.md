@@ -7,6 +7,16 @@
 
 ---
 
+## 📸 Screenshots da Aplicação
+
+| Gameplay em Andamento | Disparo e Desvio do Obstáculo |
+| :---: | :---: |
+| ![Gameplay 1](screenshots/gameplay_1.png) | ![Gameplay 2](screenshots/gameplay_2.png) |
+| **Vitória (Todos os alvos destruídos)** | **Tempo Esgotado (Game Over)** |
+| ![Vitória](screenshots/game_won.png) | ![Game Over](screenshots/game_over.png) |
+
+---
+
 ## Objetivo do Projeto
 
 Desenvolver o jogo **Cannon Game** em Android nativo (Java), aplicando os conceitos de:
@@ -73,6 +83,7 @@ CannonGame/
 │   │   ├── drawable/           # Ícones e elementos visuais adaptativos
 │   │   └── values/             # strings, colors, themes (Material Fullscreen)
 │   └── AndroidManifest.xml
+├── screenshots/                # Capturas de tela da execução no dispositivo
 ├── build.gradle
 ├── settings.gradle
 └── README.md
